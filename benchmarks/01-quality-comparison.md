@@ -19,3 +19,9 @@ Finish reason: `stop`
 In contrast to **raw throughput**, which refers to the raw capacity of a system's physical resources, **Goodput@SLO** represents a different dimension. While raw throughput measures the total volume of data passing through a system, Goodput@SLO focuses on the **quality and complexity of the data being processed**. It is a more sophisticated, modern approach to data handling that ensures data is processed correctly and efficiently, rather than just measuring how much data can be
 
 Finish reason: `length`
+
+## Interpretation
+
+Q4 connects goodput to service-level objectives, but its claim that goodput is calculated by dividing throughput by SLOs is incorrect. Q2 misidentifies the concept as a proprietary caching mechanism and invents the expansion “Synchronous Load On Rate”; its response also reaches the 160-token limit. Goodput@SLO is the rate of successful requests satisfying the stated service-level targets, whereas raw throughput does not apply that filter.
+
+Q4 is more faithful to the concept in this single comparison, but neither answer is fully correct. The same prompt, temperature, seed, and token limit make this a controlled illustrative check, not a broad quality evaluation. Q2’s truncation is part of its observed output, and the invented claims already appear before the cutoff.

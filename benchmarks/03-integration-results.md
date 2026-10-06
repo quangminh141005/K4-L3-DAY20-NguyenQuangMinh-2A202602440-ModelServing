@@ -35,8 +35,18 @@ The context explains that prefill is compute-bound (requires more CPU power), wh
 1.  **Prefill** is performed on separate pools, avoiding the compute-bound nature of th
 
 
-## Which N16-N19 pieces are real (required -- replace this line)
+## Which N16-N19 pieces are real
 
-_List each of N16, N17, N18, N19 as real or stubbed. Stubbing costs no points;
-misrepresenting it does. Then answer: is the dominant stage above what you expected?
-If you had to halve this pipeline's latency, which stage would you attack and why?_
+| Day | Component used in this run | Real or stub |
+|---|---|---|
+| N16 Cloud/IaC | Local processes; no cloud infrastructure integration | Stub |
+| N17 Data pipeline | Six hard-coded toy documents | Stub |
+| N18 Lakehouse | In-memory Python document list; no persistent lakehouse | Stub |
+| N19 Vector + features | Keyword-overlap retrieval; no embedding model or vector index | Stub |
+| N20 Serving | Actual HTTP completions from local llama-server | Real |
+
+All three queries completed and the pipeline printed the retrieved contexts and returned answers. Mean LLM time was 2361.5 ms out of 2361.6 ms total, effectively 100%. This is expected because embedding is skipped and keyword retrieval searches only six documents. Their reported 0.0 ms values are rounded timings of toy/skipped operations, not evidence that real embedding and vector retrieval would be free.
+
+To target a 2× reduction, focus on generation rather than these stub stages. First reduce unnecessary output length and remeasure while checking that answers remain complete; faster inference is another candidate. Keeping the system prompt identical can enable prefix reuse when supported, but no cache speedup was measured here. Halving the token limit is not guaranteed to halve total latency because prompt processing and other overhead remain.
+
+Execution success does not establish answer correctness. In the goodput answer, the model incorrectly says goodput ignores SLOs and expands TTFT/TPOT incorrectly. Goodput counts requests meeting SLOs; TTFT means time to first token and TPOT means time per output token. The model-generated answers above are preserved as actual outputs, including their errors.

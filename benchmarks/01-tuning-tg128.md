@@ -21,10 +21,10 @@ Use this in your run:
 LAB_N_THREADS=8 make bench
 ```
 
-## Your explanation (required -- replace this line)
+## Your explanation
 
-_Where is the knee, and why there? If the peak sits at your physical core count
-and drops above it, say what the extra threads are competing for. If your curve
-does something else -- flat, or still climbing at 2x logical cores -- say that
-instead and reason about why. A result that contradicts the expected shape is
-worth more than one that matches it, as long as you explain it._
+The curve starts flattening around 4 threads: throughput rises only about 2% from 60.9 tokens/s at 4 threads to the peak of 62.1 at 8. Above the eight physical cores, it falls to 46.1 at 16 threads and 20.5 at 32. The practical choice is therefore 8 threads; 4 is already close to the best tested throughput.
+
+Decode repeatedly accesses model weights through shared memory channels. Once memory throughput limits progress, additional threads cannot supply proportional bandwidth. SMT threads share physical-core execution resources, and 32 threads oversubscribe the 16 logical CPUs, adding scheduling and synchronization costs. These mechanisms plausibly explain the plateau and decline; this sweep did not collect hardware counters to isolate their individual contributions.
+
+Reducing the deliberately oversubscribed setting from 32 to 8 threads gives a measured 3.03× improvement. The original physical-core default was already 8, so the improvement over that default is 1.00×. The data supports avoiding excessive threads, not claiming an unmeasured speedup over the baseline.

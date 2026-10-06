@@ -4,7 +4,7 @@
 **MSSV:** 2A202602440 (inferred from repository name)
 **Cohort:** K4-L3 (inferred from repository name; confirm)
 **Run date:** 2026-10-06
-**Status:** Measurements complete; personal interpretations and screenshots pending.
+**Status:** Measurements and report interpretations complete; submission checklist below records the remaining workflow.
 
 ## 1. Hardware & runtime
 
@@ -25,31 +25,31 @@ The runtime, dependencies, and both weights were already installed. The initial 
 
 | Quantization | Size (GB) | Load (ms) | TTFT P50/P95 (ms) | TPOT P50/P95 (ms) | E2E P50/P95/P99 (ms) | Decode (tok/s) |
 |:--|--:|--:|--:|--:|--:|--:|
-| Q4_K_M | 0.50 | 1034 | 96 / 110 | 15.8 / 18.6 | 1101 / 1282 / 1282 | 63.1 |
-| UD-Q2_K_XL | 0.39 | 1018 | 145 / 160 | 14.8 / 15.6 | 1081 / 1140 / 1140 | 67.7 |
+| Q4_K_M | 0.50 | 1029 | 102 / 116 | 14.7 / 14.9 | 1019 / 1048 / 1048 | 67.9 |
+| UD-Q2_K_XL | 0.39 | 1021 | 136 / 155 | 14.1 / 14.4 | 1029 / 1049 / 1049 | 70.8 |
 
-Both quantizations completed 10/10 requests; warm-up was excluded. Compare decode throughput is 1.073× primary. Median TTFT changes from 96.2 to 144.6 ms. See `benchmarks/01-quality-comparison.md` for actual same-question responses. With 10 observations, nearest-rank P95 and P99 both select the maximum.
+Both quantizations completed 10/10 requests; warm-up was excluded. Compare decode throughput is 1.043× primary. Median TTFT changes from 102.4 to 135.5 ms. See `benchmarks/01-quality-comparison.md` for actual same-question responses. With 10 observations, nearest-rank P95 and P99 both select the maximum.
 
 **Your quality/usefulness judgment (required):**
 
-UD-Q2_K_XL decoded 7.3% faster and saved about 22% of disk space, but median TTFT increased roughly 50%. In the same-question test, Q4 gave an incorrect formula; Q2 invented a caching mechanism. This modest speed gain does not justify Q2 for accuracy-sensitive answers. Q4 is preferable here, although both need validation; one question cannot establish general quality.
+UD-Q2_K_XL decoded 4.3% faster and saved about 22% of disk space, but median TTFT increased roughly 32%. Median end-to-end latency changed from 1019 to 1029 ms. In the same-question test, Q4 gave an incorrect formula; Q2 invented a caching mechanism. This modest speed gain does not justify Q2 for accuracy-sensitive answers. Q4 is preferable here, although both need validation; one question cannot establish general quality.
 
 ## 3. Serving under load
 
 | Users | Reqs | RPS | P50 (ms) | P95 (ms) | P99 (ms) | Eff. concurrency | Failures |
 |:--|--:|--:|--:|--:|--:|--:|--:|
-| 10 | 87 | 1.48 | 5600 | 10000 | 11000 | 8.4 | 0.0% |
-| 50 | 97 | 1.64 | 28000 | 33000 | 35000 | 37.9 | 0.0% |
+| 10 | 113 | 1.93 | 4000 | 6600 | 6900 | 8.1 | 0.0% |
+| 50 | 115 | 1.96 | 24000 | 28000 | 29000 | 38.9 | 0.0% |
 
-- Configured users increased 5×; measured RPS increased 1.11×.
-- P95 increased 3.30×.
-- Effective concurrency at 50 users: 37.9 versus 4 slots.
-- Batching observations: see `benchmarks/02-server-batching-u50.md`.
+- Configured users increased 5×; measured RPS increased 1.02×.
+- P95 increased 4.24×.
+- Effective concurrency at 50 users: 38.9 versus 4 slots.
+- Highest sampled average busy-slot count: 3.81/4; peak deferred requests: 46. See `benchmarks/02-server-batching-u50.md`.
 - Each load run lasted 60 seconds. Locust uses closed-loop users and think time; user count is not a measured arrival-rate multiplier.
 
 **Your saturation reading and first knob to improve a stated SLO (required):**
 
-The server shows saturation by 50 users: RPS rose only 1.11× while P95 rose 3.30×. Busy slots reached 3.93/4 and deferred requests reached 46, supporting queueing as a major contributor. For a proposed P95 ≤ 10 s SLO, the saved 10-user snapshot meets the threshold; 50 users fails. First test increasing parallel slots from 4 to 8, then remeasure: larger batches may improve throughput, but memory pressure and slower per-request decode could offset the gain.
+The server shows saturation by 50 users: RPS rose only 1.02× (1.93 to 1.96) while P95 rose 4.24× (6.6 to 28 s). Busy slots reached 3.81/4 and deferred requests reached 46, supporting queueing as a major contributor. For a proposed P95 ≤ 10 s SLO, the saved 10-user snapshot meets the threshold; 50 users fails. First test increasing parallel slots from 4 to 8, then remeasure: larger batches may improve throughput, but memory pressure and slower per-request decode could offset the gain.
 
 ## 4. Integration
 
