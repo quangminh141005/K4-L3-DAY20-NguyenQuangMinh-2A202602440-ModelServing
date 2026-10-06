@@ -120,6 +120,11 @@ mỗi request xong nhanh hơn nên bạn thu được nhiều mẫu hơn trong 6
 make setup
 ```
 
+Nếu dùng Conda trên Linux/macOS, chạy `make setup-conda` để tạo môi trường
+`.conda/`. Sau đó dùng `make bench ENV=conda`, `make serve ENV=conda`, v.v.
+Với lệnh Python trực tiếp, thay `.venv/bin/python` bằng `.conda/bin/python`.
+Không cần activate. Xem [hướng dẫn Conda](labs/00-setup.md#conda-setup-linux--macos).
+
 Bước này mất khoảng 5–15 phút và thực hiện ba việc:
 
 - Tạo `.venv` và cài 4 package Python.

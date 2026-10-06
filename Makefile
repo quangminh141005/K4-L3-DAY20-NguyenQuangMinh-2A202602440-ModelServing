@@ -2,6 +2,15 @@
 ## One model (Gemma 4 E2B), one runtime (prebuilt llama.cpp). No compiler, no Docker.
 
 VENV     := .venv
+ENV      ?= venv
+CONDA    ?= conda
+CONDA_PREFIX_DIR := $(CURDIR)/.conda
+CONDA_PYTHON ?= 3.11
+ifeq ($(ENV),conda)
+VENV     := .conda
+else ifneq ($(ENV),venv)
+$(error Unsupported ENV='$(ENV)'; use venv or conda)
+endif
 PY       := $(VENV)/bin/python
 PIP      := $(VENV)/bin/pip
 LOCUST   := $(VENV)/bin/locust
@@ -38,7 +47,7 @@ help: ## Show this help
 # Fail early and clearly if setup has not run.
 venv-check:
 	@test -x $(PY) || { \
-	  echo "ERROR: no virtualenv at $(VENV)/. Run: make setup" >&2; exit 1; }
+	  echo "ERROR: no Python environment at $(VENV)/. Run: make setup ENV=$(ENV)" >&2; exit 1; }
 
 # ─────────────────────────────────────────────────────────────
 ## --- Setup (00)
@@ -52,11 +61,19 @@ ifeq ($(OS),Windows)
 	@echo "On Windows run: pwsh -ExecutionPolicy Bypass -File labs/00-setup/bootstrap.ps1"
 	@exit 1
 else
+ifeq ($(ENV),conda)
+	@command -v "$(CONDA)" >/dev/null || { echo "ERROR: conda not found. Set CONDA=/path/to/conda" >&2; exit 1; }
+	@test -x $(PY) || "$(CONDA)" create --yes --prefix "$(CONDA_PREFIX_DIR)" python=$(CONDA_PYTHON) pip
+else
 	@test -d $(VENV) || $(SYSPY) -m venv $(VENV)
+endif
 	@$(PY) -m pip install --upgrade pip wheel >/dev/null
 	@$(PIP) install -r requirements.txt
 	@$(PY) labs/00-setup/setup.py
 endif
+
+setup-conda: ## Set up using Conda in .conda/ (later commands: make <target> ENV=conda)
+	@$(MAKE) setup ENV=conda
 
 runtime: venv-check ## Re-fetch just the prebuilt llama.cpp binaries
 	@$(PY) labs/00-setup/fetch-runtime.py --force
@@ -179,10 +196,10 @@ clean: ## Remove generated reports (keeps hardware.json, models, REFLECTION, scr
 	@echo "Cleaned generated reports. Kept: hardware.json, models/, runtime/, submission/."
 
 clean-all: clean ## Also remove the venv, runtime binaries, weights and source build
-	@rm -rf $(VENV) runtime models bonus/llama.cpp hardware.json
+	@rm -rf .venv .conda runtime models bonus/llama.cpp hardware.json
 	@echo "Removed venv, runtime, models and hardware.json. Re-run: make setup"
 
-.PHONY: help venv-check probe setup runtime bench tune serve serve-embed smoke \
+.PHONY: help venv-check probe setup setup-conda runtime bench tune serve serve-embed smoke \
         load-10 load-50 load-report metrics pipeline verify \
         build-llama compare-builds sweep-quant sweep-ctx sweep-batch sweep-gpu \
         mlx-compare embed-demo embed-demo-offline semantic-cache semantic-cache-offline \

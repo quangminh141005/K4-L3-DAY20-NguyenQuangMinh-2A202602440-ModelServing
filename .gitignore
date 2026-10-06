@@ -1,5 +1,6 @@
 # ── Environment ──────────────────────────────────────────────
 .venv/
+.conda/
 __pycache__/
 *.pyc
 .env

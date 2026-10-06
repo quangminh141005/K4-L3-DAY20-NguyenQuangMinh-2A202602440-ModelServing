@@ -1,0 +1,45 @@
+
+────────────────────────────────────────────────────────────────
+  03 - RAG pipeline
+────────────────────────────────────────────────────────────────
+  llama-server : http://localhost:8080
+  embeddings   : none (keyword overlap fallback)
+
+=== Why is goodput more useful than raw throughput?
+  contexts : [('goodput', 1.0), ('paged', 0.0), ('radix', 0.0)]
+    [goodput] Goodput@SLO counts only the requests per second that met the TTFT and TPOT targets. Throughput at saturation ignores SLOs.
+    [paged] PagedAttention stores the KV cache in non-contiguous pages, removing the internal fragmentation that wasted most GPU memory.
+    [radix] RadixAttention keys cached KV by token prefix in a trie, so a shared prefix lets the engine skip prefill entirely.
+  timings  : {'embed': 0.0, 'retrieve': 0.0, 'llm': 3338.6, 'total': 3338.6}
+  server   : prefill 151 tok / 416 ms, decode 169 tok / 2869 ms
+  answer   : Based on the context provided, **Goodput** is more useful than raw throughput primarily because it **ignores SLOs (Service Level Objectives) at saturation**.
+
+While raw throughput measures the total requests per second (requests/sec), Goodput specifically counts only the requests
+
+=== What problem does PagedAttention actually solve?
+  contexts : [('paged', 1.0), ('radix', 0.0), ('disagg', 0.0)]
+    [paged] PagedAttention stores the KV cache in non-contiguous pages, removing the internal fragmentation that wasted most GPU memory.
+    [radix] RadixAttention keys cached KV by token prefix in a trie, so a shared prefix lets the engine skip prefill entirely.
+    [disagg] Disaggregated serving splits prefill and decode onto separate pools because prefill is compute-bound and decode is memory-bandwidth-bound.
+  timings  : {'embed': 0.0, 'retrieve': 0.0, 'llm': 1126.5, 'total': 1126.5}
+  server   : prefill 114 tok / 350 ms, decode 49 tok / 734 ms
+  answer   : PagedAttention solves the problem of **internal fragmentation in GPU memory** by storing the KV cache in non-contiguous pages.
+
+This allows the engine to utilize unused memory regions more effectively than a contiguous array, thereby reducing wasted GPU memory.
+
+=== When does splitting prefill and decode help?
+  contexts : [('disagg', 2.0), ('radix', 1.0), ('batching', 1.0)]
+    [disagg] Disaggregated serving splits prefill and decode onto separate pools because prefill is compute-bound and decode is memory-bandwidth-bound.
+    [radix] RadixAttention keys cached KV by token prefix in a trie, so a shared prefix lets the engine skip prefill entirely.
+    [batching] Continuous batching lets requests join and leave the running batch each decode step instead of waiting for a full batch.
+  timings  : {'embed': 0.0, 'retrieve': 0.0, 'llm': 2619.5, 'total': 2619.6}
+  server   : prefill 113 tok / 342 ms, decode 138 tok / 2235 ms
+  answer   : Based on the provided context, splitting prefill and decode helps to **reduce compute and memory bandwidth costs**.
+
+The context explains that prefill is compute-bound (requires more CPU power), while decode is memory-bandwidth-bound (requires more GPU memory). By splitting these
+
+  Mean over 3 queries (ms): {'embed': 0.0, 'retrieve': 0.0, 'llm': 2361.5, 'total': 2361.6}
+  Dominant stage: llm (100% of total)
+
+==> Wrote benchmarks/03-integration-results.md
+  Put these numbers in REFLECTION.md section 4 as well.

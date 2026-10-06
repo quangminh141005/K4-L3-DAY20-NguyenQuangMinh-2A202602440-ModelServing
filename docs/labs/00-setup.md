@@ -12,6 +12,33 @@ Two models are available; pick one and use it for the whole lab. `make probe` re
 one based on your RAM, and `models/active.json` remembers the choice so later steps do not
 need the variable. See [docs/GUIDE.md](../GUIDE.md) Bước 0.2 for the comparison table.
 
+## Conda setup (Linux / macOS)
+
+With Conda installed, use:
+
+```bash
+make setup-conda                      # equivalent to make setup ENV=conda
+make bench ENV=conda
+make serve ENV=conda
+```
+
+This creates a project-local `.conda/` environment with Python 3.11, installs the
+same requirements, and runs the same hardware probe and runtime/model downloads.
+Pass `ENV=conda` to subsequent Make targets; no activation is required. For manual
+Python commands below, replace `.venv/bin/python` with `.conda/bin/python`.
+Existing environments and downloaded files are reused. `make clean-all` removes
+both `.venv/` and `.conda/`.
+
+If Conda is not on your PATH, specify its executable. You can also choose the
+Python version and model:
+
+```bash
+make setup-conda CONDA=~/miniconda3/bin/conda
+LAB_MODEL=qwen35-0.8b make setup-conda CONDA_PYTHON=3.11
+```
+
+The default `make setup` continues to use `.venv/`.
+
 Windows:
 
 ```powershell

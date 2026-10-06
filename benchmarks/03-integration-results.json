@@ -1,0 +1,113 @@
+{
+  "backend": "keyword overlap",
+  "mean_ms": {
+    "embed": 0.0,
+    "retrieve": 0.0,
+    "llm": 2361.5,
+    "total": 2361.6
+  },
+  "results": [
+    {
+      "query": "Why is goodput more useful than raw throughput?",
+      "answer": "Based on the context provided, **Goodput** is more useful than raw throughput primarily because it **ignores SLOs (Service Level Objectives) at saturation**.\n\nWhile raw throughput measures the total requests per second (requests/sec), Goodput specifically counts only the requests that met the Target Time-to-Fullness (TTFT) and Target Time-to-Poll (TPOT) targets. This means Goodput focuses on the actual quality of the service (the SLOs) rather than the raw volume of traffic.\n\nAdditionally, Goodput is noted to have a specific advantage regarding memory usage: it avoids the internal fragmentation that occurs when PagedAttention stores KV cache in non-contiguous pages, which wastes GPU memory. Therefore, Goodput provides a more efficient and accurate measure of throughput that respects the quality of the service.",
+      "contexts": [
+        {
+          "id": "goodput",
+          "score": 1.0,
+          "text": "Goodput@SLO counts only the requests per second that met the TTFT and TPOT targets. Throughput at saturation ignores SLOs."
+        },
+        {
+          "id": "paged",
+          "score": 0.0,
+          "text": "PagedAttention stores the KV cache in non-contiguous pages, removing the internal fragmentation that wasted most GPU memory."
+        },
+        {
+          "id": "radix",
+          "score": 0.0,
+          "text": "RadixAttention keys cached KV by token prefix in a trie, so a shared prefix lets the engine skip prefill entirely."
+        }
+      ],
+      "embed_backend": "keyword overlap",
+      "timings_ms": {
+        "embed": 0.0,
+        "retrieve": 0.0,
+        "llm": 3338.6,
+        "total": 3338.6
+      },
+      "server_timings": {
+        "prompt_n": 151,
+        "prompt_ms": 415.594,
+        "predicted_n": 169,
+        "predicted_ms": 2868.594
+      }
+    },
+    {
+      "query": "What problem does PagedAttention actually solve?",
+      "answer": "PagedAttention solves the problem of **internal fragmentation in GPU memory** by storing the KV cache in non-contiguous pages.\n\nThis allows the engine to utilize unused memory regions more effectively than a contiguous array, thereby reducing wasted GPU memory.",
+      "contexts": [
+        {
+          "id": "paged",
+          "score": 1.0,
+          "text": "PagedAttention stores the KV cache in non-contiguous pages, removing the internal fragmentation that wasted most GPU memory."
+        },
+        {
+          "id": "radix",
+          "score": 0.0,
+          "text": "RadixAttention keys cached KV by token prefix in a trie, so a shared prefix lets the engine skip prefill entirely."
+        },
+        {
+          "id": "disagg",
+          "score": 0.0,
+          "text": "Disaggregated serving splits prefill and decode onto separate pools because prefill is compute-bound and decode is memory-bandwidth-bound."
+        }
+      ],
+      "embed_backend": "keyword overlap",
+      "timings_ms": {
+        "embed": 0.0,
+        "retrieve": 0.0,
+        "llm": 1126.5,
+        "total": 1126.5
+      },
+      "server_timings": {
+        "prompt_n": 114,
+        "prompt_ms": 350.262,
+        "predicted_n": 49,
+        "predicted_ms": 734.075
+      }
+    },
+    {
+      "query": "When does splitting prefill and decode help?",
+      "answer": "Based on the provided context, splitting prefill and decode helps to **reduce compute and memory bandwidth costs**.\n\nThe context explains that prefill is compute-bound (requires more CPU power), while decode is memory-bandwidth-bound (requires more GPU memory). By splitting these operations into separate pools:\n1.  **Prefill** is performed on separate pools, avoiding the compute-bound nature of the full operation.\n2.  **Decode** is performed on separate pools, avoiding the memory-bound nature of the full operation.\n\nThis allows the system to utilize different hardware resources more efficiently, specifically by skipping the expensive prefill step entirely when a shared prefix is cached in a trie.",
+      "contexts": [
+        {
+          "id": "disagg",
+          "score": 2.0,
+          "text": "Disaggregated serving splits prefill and decode onto separate pools because prefill is compute-bound and decode is memory-bandwidth-bound."
+        },
+        {
+          "id": "radix",
+          "score": 1.0,
+          "text": "RadixAttention keys cached KV by token prefix in a trie, so a shared prefix lets the engine skip prefill entirely."
+        },
+        {
+          "id": "batching",
+          "score": 1.0,
+          "text": "Continuous batching lets requests join and leave the running batch each decode step instead of waiting for a full batch."
+        }
+      ],
+      "embed_backend": "keyword overlap",
+      "timings_ms": {
+        "embed": 0.0,
+        "retrieve": 0.0,
+        "llm": 2619.5,
+        "total": 2619.6
+      },
+      "server_timings": {
+        "prompt_n": 113,
+        "prompt_ms": 342.486,
+        "predicted_n": 138,
+        "predicted_ms": 2235.117
+      }
+    }
+  ]
+}
